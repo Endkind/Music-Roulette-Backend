@@ -22,9 +22,17 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await redis_client.aclose()
 
 
-app = FastAPI(title="Music Roulette Backend", debug=DEBUG, lifespan=lifespan)
+api = FastAPI(title="Music Roulette Backend", debug=DEBUG, lifespan=lifespan)
 
-app.include_router(router)
+api.include_router(router)
+
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
+
+app.mount("/api", api)
 
 if __name__ == "__main__":
     uvicorn.run(
