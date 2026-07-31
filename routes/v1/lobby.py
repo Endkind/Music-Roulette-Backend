@@ -1,9 +1,10 @@
 import secrets
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
+from config.app import AppConfig
 from core.bcrypt import Bcrypt
 from core.redis import redis_client
 from schemas.response.v1.lobby import *
@@ -23,15 +24,19 @@ async def create_lobby() -> LobbyCreateResponse:
     return LobbyCreateResponse(lobby_id=uuid, token=token)
 
 
-@router.get("/{lobby_id:str}")  # TODO: Remove this route, only for testing purposes
+@router.get("/{lobby_id:uuid}")  # TODO: Remove this route, only for testing purposes
 async def get_lobby(lobby_id: UUID):
     lobby = await redis_client.get(str(lobby_id))
 
     return {"lobby_id": lobby_id, "exists": bool(lobby)}
 
 
-@router.websocket("/{lobby_id:str}")
-async def websocket_endpoint(websocket, lobby_id: UUID, username: str) -> None:
+@router.websocket("/{lobby_id:uuid}")
+async def websocket_endpoint(
+    websocket: WebSocket, lobby_id: UUID, username: str
+) -> None:
+    if AppConfig.IS_DEVELOPMENT_ENVIRONMENT:
+        print(f"User {username} is trying to connect to lobby {lobby_id}")
     lobby = await redis_client.get(str(lobby_id))
 
     if lobby is None:
@@ -72,7 +77,9 @@ async def websocket_endpoint(websocket, lobby_id: UUID, username: str) -> None:
                 )
                 continue
 
-            response = BaseLobbySchema(data=request.data)
+            response = BaseLobbySchema(
+                data=request.data, username=username, type=request.type
+            )
 
             await lobby_connection_manager.broadcast(
                 lobby_id, response, sender=websocket

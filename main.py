@@ -1,16 +1,14 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Final
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from config.app import AppConfig, AppEnvironment
+from config.app import AppConfig
 from config.uvicorn import UvicornConfig
 from core.redis import redis_client
 from routes import router
-
-DEBUG: Final[bool] = AppConfig.ENV == AppEnvironment.DEVELOPMENT
 
 
 @asynccontextmanager
@@ -22,7 +20,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await redis_client.aclose()
 
 
-api = FastAPI(title="Music Roulette Backend", debug=DEBUG, lifespan=lifespan)
+api = FastAPI(
+    title="Music Roulette Backend",
+    debug=AppConfig.IS_DEVELOPMENT_ENVIRONMENT,
+    lifespan=lifespan,
+)
+
+if AppConfig.IS_DEVELOPMENT_ENVIRONMENT:
+    api.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 api.include_router(router)
 
@@ -36,5 +47,8 @@ app.mount("/api", api)
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app", host=UvicornConfig.HOST, port=UvicornConfig.PORT, reload=DEBUG
+        "main:app",
+        host=UvicornConfig.HOST,
+        port=UvicornConfig.PORT,
+        reload=IS_DEVELOPMENT_ENVIRONMENT,
     )
