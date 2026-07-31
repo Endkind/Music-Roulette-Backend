@@ -18,3 +18,4 @@ def get_environment() -> AppEnvironment:
 
 class AppConfig:
     ENV: Final[AppEnvironment] = get_environment()
+    IS_DEVELOPMENT_ENVIRONMENT: Final[bool] = ENV == AppEnvironment.DEVELOPMENT
