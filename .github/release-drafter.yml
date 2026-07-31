@@ -1,0 +1,51 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+categories:
+  - title: '💥 Breaking Changes'
+    label: 'breaking'
+    collapse-after: 5
+  - title: '🚀 Features'
+    label: 'feature'
+    collapse-after: 5
+  - title: '🐛 Bug Fixes'
+    label: 'bug'
+    collapse-after: 5
+  - title: '🧰 Maintenance'
+    label: 'maintenance'
+    collapse-after: 5
+  - title: '🆕 Updates'
+    label: 'update'
+    collapse-after: 5
+  - title : '⚡ Performance'
+    label: 'performance'
+    collapse-after: 5
+  - title: '✅ Tests'
+    label: 'tests'
+    collapse-after: 5
+  - title: '📚 Documentation'
+    label: 'documentation'
+    collapse-after: 5
+
+change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
+no-changes-template: '- No changes'
+
+version-resolver:
+  major:
+    labels:
+      - 'breaking'
+  minor:
+    labels:
+      - 'feature'
+  patch:
+    labels:
+      - 'bug'
+      - 'maintenance'
+      - 'update'
+      - 'documentation'
+
+template: |
+  # Changes
+
+  $CHANGES
+
+  **Full Changelog**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
