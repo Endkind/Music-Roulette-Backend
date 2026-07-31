@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from core.bcrypt import Bcrypt
 from core.redis import redis_client
 from schemas.response.v1.lobby import *
+from schemas.v1.lobby import BaseLobbySchema
 from websockets_managers.v1.lobby import lobby_connection_manager
 
 router = APIRouter(prefix="/lobby")
@@ -59,9 +60,7 @@ async def websocket_endpoint(websocket, lobby_id: UUID, username: str) -> None:
             raw_message = await websocket.receive_text()
 
             try:
-                request = LobbyMessageRequest.model_validate_json(
-                    raw_message
-                )  # TODO: Replace with right base model
+                request = BaseLobbySchema.model_validate_json(raw_message)
             except ValidationError:
                 await lobby_connection_manager.send(
                     websocket=websocket,
@@ -73,7 +72,7 @@ async def websocket_endpoint(websocket, lobby_id: UUID, username: str) -> None:
                 )
                 continue
 
-            response = LobbyMessageResponse(lobby_id=lobby_id, data=request.data)
+            response = BaseLobbySchema(data=request.data)
 
             await lobby_connection_manager.broadcast(
                 lobby_id, response, sender=websocket
